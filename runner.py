@@ -1,64 +1,55 @@
 import pygame
+import math
 import random
-from utils.colors import RED
+import numpy as np
+from utils.params import RUNNER_MAX_SPEED, RUNNER_STEERING_STRENGTH, RUNNER_SMOOTHNESS
 
 class Runner:
-    def __init__(self, x = 600, y = 300):
+    def __init__(self, x, y):
         self.pos = pygame.Vector2(x, y)
-        self.speed = 2.5
-        self.color = RED
+        self.velocity = pygame.Vector2(random.uniform(-1, 1), 
+                                     random.uniform(-1, 1)).normalize() * 0.5
+        self.color = (255, 0, 0)
         self.radius = 15
-        self.direction = pygame.Vector2(1, 0).rotate(random.randint(0, 360))
-        self.max_turn_angle = 30  # Max degrees per frame
-        self.speed = 3.0
-        self.max_speed = 4.5
-        self.min_speed = 1.5
-        self.last_direction = self.direction
-        self.border_margin = 50
-        self.turn_std_dev = 12
-        self.turn_smoothing = 0.2
+        self.max_speed = RUNNER_MAX_SPEED
+        self.steering_strength = RUNNER_STEERING_STRENGTH  # Lower = smoother turns
+        self.border_margin = 80
+        self.target_velocity = self.velocity.copy()
+        self.smoothness = RUNNER_SMOOTHNESS  # 0-1, higher = smoother direction changes
 
-    def get_turn_angle(self):
-        angle = random.gauss(0, self.turn_std_dev)
-        return max(-self.max_turn_angle, min(self.max_turn_angle, angle))
-    
+    def _get_new_direction(self):
+        """Generates smoothly changing target direction"""
+        angle_change = random.gauss(0, 15) * (1 - self.smoothness)
+        return self.target_velocity.rotate(angle_change).normalize()
+
     def update_random(self):
-        # Small random directional adjustments
-        prev_direction = self.direction.copy()
+        # Gradually update target velocity
+        if random.random() < 0.5:
+            self.target_velocity = self._get_new_direction() * self.max_speed
         
-        # Random directional adjustment (smaller changes more likely)
-        turn_angle = self.get_turn_angle()
-        self.direction.rotate_ip(turn_angle)
+        # Smooth steering toward target velocity
+        self.velocity += (self.target_velocity - self.velocity) * self.steering_strength
         
-        # Calculate direction change amount
-        # angle_change = math.degrees(self.last_direction.angle_to(self.direction))
-        normalized_change = min(abs(turn_angle) / 30.0, 1.0)  # 0-1 range
-        
-        # Adaptive speed control
-        target_speed = self.max_speed * (1 - normalized_change)  # Slower when turning sharply
-        self.speed += (target_speed - self.speed) * self.turn_smoothing
-        self.speed = max(self.min_speed, min(self.max_speed, self.speed))
-        
-        # Update last direction
-        self.last_direction = self.direction.copy()
-        
-        # Border handling with smooth redirection
-        if self.pos.x < self.border_margin or self.pos.x > WIDTH - self.border_margin:
-            new_dir = pygame.Vector2(-1 if self.pos.x > WIDTH/2 else 1, 0)
-            new_dir.rotate_ip(random.uniform(-30, 30))
-            self.direction = new_dir
-            self.speed = self.min_speed  # Slow down during border turns
+        # Border handling with smooth rebound
+        if self.pos.x < self.border_margin:
+            self.target_velocity.x = abs(self.target_velocity.x)
+        elif self.pos.x > pygame.display.get_surface().get_width() - self.border_margin:
+            self.target_velocity.x = -abs(self.target_velocity.x)
             
-        if self.pos.y < self.border_margin or self.pos.y > HEIGHT - self.border_margin:
-            new_dir = pygame.Vector2(0, -1 if self.pos.y > HEIGHT/2 else 1)
-            new_dir.rotate_ip(random.uniform(-30, 30))
-            self.direction = new_dir
-            self.speed = self.min_speed
+        if self.pos.y < self.border_margin:
+            self.target_velocity.y = abs(self.target_velocity.y)
+        elif self.pos.y > pygame.display.get_surface().get_height() - self.border_margin:
+            self.target_velocity.y = -abs(self.target_velocity.y)
         
-        # Normalize and move
-        self.direction = self.direction.normalize()
-        self.pos += self.direction * self.speed
-        print(turn_angle, normalized_change, target_speed, self.speed)
+        # Update position
+        self.pos += self.velocity
+
+    def get_position(self):
+        return self.pos.copy()
 
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, (int(self.pos.x), int(self.pos.y)), self.radius)
+        
+        # Draw velocity vector (optional visual aid)
+        end_pos = self.pos + self.velocity * 20
+        pygame.draw.line(surface, (200, 0, 0), self.pos, end_pos, 2)

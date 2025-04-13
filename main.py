@@ -3,10 +3,10 @@ import math
 from runner import Runner
 from chaser import Chaser, create_triangular_formation, draw_chaser_lines
 from utils.colors import WHITE, GRAY, GREEN
+from utils.params import WIDTH, HEIGHT
 
 # Initialize Pygame
 pygame.init()
-WIDTH, HEIGHT = 1920, 1080
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Smooth Drone Movement")
 
@@ -25,12 +25,7 @@ while running:
     
     # Update
     runner.update_random()
-    
-    # Calculate formation forward vector (we'll use runner's direction)
-    formation_angle = math.degrees(math.atan2(runner.direction.y, runner.direction.x))
-    
-    # for chaser in chasers:
-    #     chaser.update(runner.pos, formation_angle)
+    [chaser.update_simple(runner.get_position()) for chaser in chasers]
     
     # Draw
     screen.fill(WHITE)
@@ -41,9 +36,18 @@ while running:
     for y in range(0, HEIGHT, 100):
         pygame.draw.line(screen, GRAY, (0, y), (WIDTH, y), 1)    
     
+    captured = False
     # Draw drones
     for chaser in chasers:
         chaser.draw(screen)
+        if (chaser.has_captured(runner.get_position())):
+            print("RUNNER CAPTURED")
+            captured = True
+            break
+
+    if (captured):
+        break     
+
     runner.draw(screen)
     
     draw_chaser_lines(screen, chasers)

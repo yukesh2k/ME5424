@@ -1,24 +1,29 @@
 import pygame
 from utils.colors import BLUE, GREEN
+from utils.params import CHASER_SPEED
 import math
 
 class Chaser:
     def __init__(self, x, y):
         self.pos = pygame.Vector2(x, y)
-        self.color = BLUE
+        self.color = (0, 100, 255)  # Blue
         self.radius = 12
-        self.speed = 0  # Will be set in formation update
-        self.direction = pygame.Vector2(0, 0)  # Will be calculated
-        self.formation_offset = pygame.Vector2(0, 0)  # Position relative to formation center
+        self.speed = CHASER_SPEED
+        self.capture_radius = 25  # Pixels
 
-    def update(self, formation_center, formation_angle):
-        # Maintain formation position (no chasing logic yet)
-        target_pos = formation_center + self.formation_offset.rotate(formation_angle)
-        self.direction = (target_pos - self.pos).normalize()
-        self.pos += self.direction * self.speed
+    def update_simple(self, runner_position):
+        """Simple proportional pursuit"""
+        direction = (runner_position - self.pos).normalize()
+        self.pos += direction * self.speed
+
+    def has_captured(self, runner_position):
+        return self.pos.distance_to(runner_position) < self.capture_radius
 
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, (int(self.pos.x), int(self.pos.y)), self.radius)
+    
+    def get_position(self):
+        self.pos.copy()
 
 def create_triangular_formation(center, radius):
     """Creates 3 chasers in equilateral triangle formation"""
@@ -32,7 +37,6 @@ def create_triangular_formation(center, radius):
             radius * math.cos(math.radians(angle)),
             radius * math.sin(math.radians(angle))
         )
-        chaser.speed = 4.0
         chasers.append(chaser)
     
     return chasers
