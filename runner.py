@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 import numpy as np
-from utils.params import RUNNER_MAX_SPEED, RUNNER_STEERING_STRENGTH, RUNNER_SMOOTHNESS
+from utils.params import RUNNER_MAX_SPEED, RUNNER_STEERING_STRENGTH, RUNNER_SMOOTHNESS, SENSE_RADIUS, BORDER_MARGIN, WIDTH, HEIGHT
 
 class Runner:
     def __init__(self, x, y):
@@ -30,18 +30,57 @@ class Runner:
         # Smooth steering toward target velocity
         self.velocity += (self.target_velocity - self.velocity) * self.steering_strength
         
-        # Border handling with smooth rebound
-        if self.pos.x < self.border_margin:
+        if self.pos.x < BORDER_MARGIN:
             self.target_velocity.x = abs(self.target_velocity.x)
-        elif self.pos.x > pygame.display.get_surface().get_width() - self.border_margin:
+        elif self.pos.x > WIDTH - BORDER_MARGIN:
             self.target_velocity.x = -abs(self.target_velocity.x)
-            
-        if self.pos.y < self.border_margin:
+
+        if self.pos.y < BORDER_MARGIN:
             self.target_velocity.y = abs(self.target_velocity.y)
-        elif self.pos.y > pygame.display.get_surface().get_height() - self.border_margin:
+        elif self.pos.y > HEIGHT - BORDER_MARGIN:
             self.target_velocity.y = -abs(self.target_velocity.y)
         
         # Update position
+        self.pos += self.velocity
+
+    def update_with_avoidance(self, chasers):
+        # Check for nearby chasers
+        threats = [c for c in chasers if self.pos.distance_to(c.pos) <= SENSE_RADIUS]
+        
+        if threats:
+            # Compute total repulsion vector
+            repulsion = pygame.Vector2(0, 0)
+            for ch in threats:
+                offset = self.pos - ch.pos
+                dist = offset.length()
+                if dist > 0:
+                    repulsion += offset / (dist**2)  # stronger when closer
+            
+            if repulsion.length() > 0:
+                self.target_velocity = repulsion.normalize() * self.max_speed
+        else:
+            # If no threats, continue random wandering
+            if random.random() < 0.5:
+                self.target_velocity = self._get_new_direction() * self.max_speed
+
+        # Smooth steering toward target velocity
+        self.velocity += (self.target_velocity - self.velocity) * self.steering_strength
+
+        if self.pos.x < BORDER_MARGIN:
+            self.target_velocity.x = abs(self.target_velocity.x)
+            print("border1")
+        elif self.pos.x > WIDTH - BORDER_MARGIN:
+            self.target_velocity.x = -abs(self.target_velocity.x)
+            print("border2")
+
+        if self.pos.y < BORDER_MARGIN:
+            self.target_velocity.y = abs(self.target_velocity.y)
+            print("border3")
+        elif self.pos.y > HEIGHT - BORDER_MARGIN:
+            self.target_velocity.y = -abs(self.target_velocity.y)
+            print("border4")
+
+        # Move
         self.pos += self.velocity
 
     def get_position(self):
