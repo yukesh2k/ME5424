@@ -1,6 +1,6 @@
 import pygame
 from utils.colors import BLUE, GREEN
-from utils.params import CHASER_SPEED, WIDTH, HEIGHT, BORDER_MARGIN, SENSE_RADIUS
+from utils.params import CHASER_SPEED, WIDTH, HEIGHT, BORDER_MARGIN, SENSE_RADIUS, CHASER_SPACING
 import math
 import random
 
@@ -60,7 +60,7 @@ class Chaser:
             self.pos += self.velocity
 
     def update_hybrid_1(self, runner_pos, runner_visible, all_chasers):
-        neighbors = [c for c in all_chasers if c.id != self.id and self.pos.distance_to(c.pos) <= self.comm_radius]
+        neighbors = [c for c in all_chasers if c is not self]
 
         if runner_visible:
             self.mode = 'pursuit'
@@ -71,32 +71,47 @@ class Chaser:
         if self.mode == 'pursuit':
             if self.last_runner_pos:
                 direction = (self.last_runner_pos - self.pos).normalize()
-                self.velocity += (direction * self.max_speed - self.velocity) * self.steering_strength
+                
+                repulsion = pygame.Vector2(0, 0)
+                for neighbor in neighbors:
+                    offset = self.pos - neighbor.pos
+                    dist = offset.length()
+                    if dist > 0 and dist < CHASER_SPACING:
+                        repulsion += offset / (dist ** 2)
+
+                combined = direction * self.max_speed + repulsion * 100
+                self.velocity += (combined - self.velocity) * self.steering_strength
+
                 self.pos += self.velocity
 
-                if self.pos.distance_to(self.last_runner_pos) < self.sense_radius:
-                    self.mode = 'exploration'
-                    self.last_runner_pos = None
+                # if self.pos.distance_to(self.last_runner_pos) < SENSE_RADIUS:
+                #     self.mode = 'exploration'
+                #     self.last_runner_pos = None
         else:
+            self.mode = 'exploration'
             if random.random() < 0.1:
-                self.target_velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize() * self.max_speed
-            repulsion = pygame.Vector2(0, 0)
-            for neighbor in neighbors:
-                offset = self.pos - neighbor.pos
-                dist = offset.length()
-                if dist > 0 and dist < 100:
-                    repulsion += offset / (dist ** 2)
+                self.target_velocity = self._get_new_wander_direction() * self.max_speed
 
-            steer = self.target_velocity + repulsion * 100
+            repulsion = pygame.Vector2(0, 0)
+            for other in all_chasers:
+                if other is not self:
+                    offset = self.pos - other.pos
+                    dist = offset.length()
+                    if 0 < dist < SENSE_RADIUS:
+                        repulsion += offset / (dist**2)
+            
+            # Smooth transition toward new direction
+            steer = self.target_velocity + repulsion * 100  # Tune strength as needed
             self.velocity += (steer - self.velocity) * self.steering_strength
 
-            if self.pos.x < self.border_margin:
+            if self.pos.x < BORDER_MARGIN:
                 self.target_velocity.x = abs(self.target_velocity.x)
-            elif self.pos.x > WIDTH - self.border_margin:
+            elif self.pos.x > WIDTH - BORDER_MARGIN:
                 self.target_velocity.x = -abs(self.target_velocity.x)
-            if self.pos.y < self.border_margin:
+
+            if self.pos.y < BORDER_MARGIN:
                 self.target_velocity.y = abs(self.target_velocity.y)
-            elif self.pos.y > HEIGHT - self.border_margin:
+            elif self.pos.y > HEIGHT - BORDER_MARGIN:
                 self.target_velocity.y = -abs(self.target_velocity.y)
 
             self.pos += self.velocity

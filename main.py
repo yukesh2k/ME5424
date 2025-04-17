@@ -39,8 +39,8 @@ while running:
     runner_pos = runner.get_position()
     for chaser in chasers:
         dist = chaser.pos.distance_to(runner_pos)
-        chaser.update_simple(runner_pos, dist <= SENSE_RADIUS, chasers)
-        # chaser.update_hybrid_1()
+        # chaser.update_simple(runner_pos, dist <= SENSE_RADIUS, chasers)
+        chaser.update_hybrid_1(runner_pos, dist <= SENSE_RADIUS, chasers)
     
     # Draw
     screen.fill(WHITE)
