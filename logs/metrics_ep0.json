@@ -1,0 +1,37 @@
+{
+  "episode_data": {
+    "0": {
+      "total_reward": -151.04000000000093,
+      "steps": 523,
+      "capture_success": 1,
+      "explored_cells": 0,
+      "mode_switches": 606,
+      "explored_percentage": 0.4670138888888889,
+      "avg_q_value": 0.14421442089831993
+    }
+  },
+  "aggregated_metrics": {
+    "total_reward": [
+      -151.04000000000093
+    ],
+    "steps": [
+      523
+    ],
+    "capture_success": [
+      1
+    ],
+    "explored_cells": [
+      0
+    ],
+    "mode_switches": [
+      606
+    ],
+    "explored_percentage": [
+      0.4670138888888889
+    ],
+    "avg_q_value": [
+      0.14421442089831993
+    ]
+  },
+  "training_duration": 9.039198160171509
+}
