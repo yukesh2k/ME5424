@@ -10,7 +10,7 @@ class Runner:
         self.velocity = pygame.Vector2(random.uniform(-1, 1), 
                                      random.uniform(-1, 1)).normalize() * 0.5
         self.color = (255, 0, 0)
-        self.radius = 15
+        self.radius = 5
         self.max_speed = RUNNER_MAX_SPEED
         self.steering_strength = RUNNER_STEERING_STRENGTH  # Lower = smoother turns
         self.border_margin = 80

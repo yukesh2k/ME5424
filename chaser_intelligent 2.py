@@ -10,8 +10,8 @@ class ChaserIntelligent:
         self.pos = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize() * 0.5
         self.target_velocity = self.velocity.copy()
-        self.radius = 5
-        self.speed = 2.5
+        self.radius = 12
+        self.speed = 3.0
         self.max_speed = 3.5
         self.steering_strength = 0.08
         self.mode = "exploration"
@@ -23,9 +23,8 @@ class ChaserIntelligent:
         self.exploration_cell_size = 30  # Smaller cells for smoother movement
         self.mode_switch = False
 
-    def update(self, env, runner, other_chasers):
-        state = env.get_state(self, runner, other_chasers)
-        print(type(env))
+    def update(self, env, runners, other_chasers):
+        state = env.get_state(self, runners, other_chasers)
         
         # Check if any chaser can see the runner
         swarm_sees_runner = (state[2] > 0.5) or any(
@@ -43,7 +42,10 @@ class ChaserIntelligent:
 
         # Execute behavior
         if self.mode == "pursuit":
-            self._pursuit_behavior(runner)
+            if (state[2] == 1.0):
+                self._pursuit_behavior(runners[0])
+            elif (state[2] == 2.0):
+                self._pursuit_behavior(runners[1])
             self.last_action = -1
         else:
             self._explore(env)

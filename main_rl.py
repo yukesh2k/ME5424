@@ -6,7 +6,7 @@ from chaser_intelligent import create_triangular_formation
 from chaser_rl import RLAgent
 import random
 from metrics_logger import MetricsLogger
-import torch
+# import torch
 
 # Constants
 WIDTH, HEIGHT = 1920, 1080
@@ -119,8 +119,8 @@ def main():
                     )
                     episode_reward += reward
             
-                    with torch.no_grad():
-                            q_values.append(torch.max(rl_agent.q_net(torch.FloatTensor(next_state))).item())
+                    # with torch.no_grad():
+                    #         q_values.append(torch.max(rl_agent.q_net(torch.FloatTensor(next_state))).item())
                 
                     episode_metrics['total_reward'] += reward
 
