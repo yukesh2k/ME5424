@@ -1,21 +1,21 @@
 {
   "episode_data": {
     "0": {
-      "total_reward": -151.04000000000093,
-      "steps": 523,
+      "total_reward": 59.090000000000046,
+      "steps": 548,
       "capture_success": 1,
       "explored_cells": 0,
-      "mode_switches": 606,
-      "explored_percentage": 0.4670138888888889,
-      "avg_q_value": 0.14421442089831993
+      "mode_switches": 1521,
+      "explored_percentage": 0.5407986111111112,
+      "avg_q_value": 0
     }
   },
   "aggregated_metrics": {
     "total_reward": [
-      -151.04000000000093
+      59.090000000000046
     ],
     "steps": [
-      523
+      548
     ],
     "capture_success": [
       1
@@ -24,14 +24,14 @@
       0
     ],
     "mode_switches": [
-      606
+      1521
     ],
     "explored_percentage": [
-      0.4670138888888889
+      0.5407986111111112
     ],
     "avg_q_value": [
-      0.14421442089831993
+      0
     ]
   },
-  "training_duration": 9.039198160171509
+  "training_duration": 9.382886171340942
 }

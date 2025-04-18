@@ -10,7 +10,7 @@ class ChaserIntelligent:
         self.pos = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize() * 0.5
         self.target_velocity = self.velocity.copy()
-        self.radius = 5
+        self.radius = 15
         self.speed = 2.5
         self.max_speed = 3.5
         self.steering_strength = 0.08
@@ -25,7 +25,6 @@ class ChaserIntelligent:
 
     def update(self, env, runner, other_chasers):
         state = env.get_state(self, runner, other_chasers)
-        print(type(env))
         
         # Check if any chaser can see the runner
         swarm_sees_runner = (state[2] > 0.5) or any(

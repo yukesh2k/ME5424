@@ -1,12 +1,13 @@
 import pygame
 import numpy as np
-from drone_env import DroneEnv
+from drone_env_2 import DroneEnv
 from runner import Runner
-from chaser_intelligent import create_triangular_formation
+from chaser_intelligent_2 import create_triangular_formation
 from chaser_rl import RLAgent
 import random
 from metrics_logger import MetricsLogger
 import torch
+from itertools import product
 
 # Constants
 WIDTH, HEIGHT = 1920, 1080
@@ -36,6 +37,7 @@ def initialize_simulation(rl_agent):
                 break
 
         runner = Runner(rand_pos.x, rand_pos.y)
+        runners.append(runner)
 
     return screen, clock, env, runners, chasers
 
@@ -73,7 +75,7 @@ def main():
             [runner.update_random() for runner in runners]
             
             for chaser in chasers:
-                chaser.update(env, runner, [c for c in chasers if c != chaser])
+                chaser.update(env, runners, [c for c in chasers if c != chaser])
                 if chaser.mode_switch:
                     episode_metrics['mode_switches'] += 1
                 env.mark_visited(chaser.pos)
@@ -88,8 +90,8 @@ def main():
             # Check for capture
             captured = False
             capturing_chaser = None
-            
-            for chaser in chasers:
+
+            for _idx, (chaser, runner) in enumerate(product(chasers, runners)):
                 if chaser.pos.distance_to(runner.pos) < chaser.radius + runner.radius:
                     captured = True
                     capturing_chaser = chaser
@@ -100,7 +102,7 @@ def main():
             
             for chaser in chasers:
                 if chaser.last_state is not None and chaser.last_action is not None:
-                    next_state = env.get_state(chaser, runner, 
+                    next_state = env.get_state(chaser, runners, 
                                              [c for c in chasers if c != chaser])
                     reward = env.get_reward(chaser, runner, 
                                           [c for c in chasers if c != chaser])
@@ -132,11 +134,11 @@ def main():
             
             # Render
             screen.fill((255, 255, 255))
-            pygame.draw.circle(screen, (255, 0, 0), (int(runner.pos.x), int(runner.pos.y)), runner.radius)
+            [pygame.draw.circle(screen, (255, 0, 0), (int(runner.pos.x), int(runner.pos.y)), runner.radius) for runner in runners]
             
             for chaser in chasers:
                 if chaser.mode == "pursuit":
-                    color = (255, 100, 100)  # Light red
+                    color = (255, 165, 0)  # Light red
                     pygame.draw.line(screen, (255, 0, 0, 100), 
                                    (int(chaser.pos.x), int(chaser.pos.y)),
                                    (int(runner.pos.x), int(runner.pos.y)), 2)

@@ -10,8 +10,8 @@ class ChaserIntelligent:
         self.pos = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize() * 0.5
         self.target_velocity = self.velocity.copy()
-        self.radius = 12
-        self.speed = 3.0
+        self.radius = 15
+        self.speed = 2.5
         self.max_speed = 3.5
         self.steering_strength = 0.08
         self.mode = "exploration"
